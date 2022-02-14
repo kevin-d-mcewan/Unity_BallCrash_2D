@@ -5,10 +5,14 @@ using UnityEngine.InputSystem;
 
 public class BallHandler : MonoBehaviour
 {
+    private Camera mainCamera;
+
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        // Find and get ref to the main camera in unity
+        mainCamera = Camera.main;
     }
 
     // Update is called once per frame
@@ -29,6 +33,11 @@ public class BallHandler : MonoBehaviour
         // This basically says every frame get our touch and give us the position for that touch and STORE IT IN THE VARIABLE
         Vector2 touchPosition = Touchscreen.current.primaryTouch.position.ReadValue();
 
-        Debug.Log(touchPosition);
+        // convert from touch to world space. Unity has a built in system of this thru camera. So get ref to camera to use; Pass in touch position which is a vec 2 which
+        // still works bc just add 0 to z. Then create a vec3 var "worldPosition" bc thats what "ScreenToWOrldPoint" is
+        Vector3 worldPostion = mainCamera.ScreenToWorldPoint(touchPosition);
+
+
+        Debug.Log(worldPostion);
     }
 }
