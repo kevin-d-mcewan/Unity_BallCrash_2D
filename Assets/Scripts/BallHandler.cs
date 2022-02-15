@@ -7,12 +7,17 @@ using UnityEngine.InputSystem;
 public class BallHandler : MonoBehaviour
 {
 
-    [SerializeField] private Rigidbody2D currentBallRigidBody;
-    [SerializeField] private SpringJoint2D currentBallSpringJoint;
-    [SerializeField] private float detachDelay = 0.2f;
+    [SerializeField] private GameObject ballPrefab;
+    [SerializeField] private Rigidbody2D pivot;
+    [SerializeField] private float detachDelay;
+    [SerializeField] private float respawnDelay;
 
-    private bool isDragging;
+
+    private Rigidbody2D currentBallRigidBody;
+    private SpringJoint2D currentBallSpringJoint;
+    
     private Camera mainCamera;
+    private bool isDragging;
 
 
 
@@ -21,7 +26,10 @@ public class BallHandler : MonoBehaviour
     {
         // Find and get ref to the main camera in unity
         mainCamera = Camera.main;
+        // Spawn in a new ball to start the game
+        SpawnNewBall();
     }
+
 
     // Update is called once per frame
     void Update()
@@ -34,7 +42,7 @@ public class BallHandler : MonoBehaviour
 
         // Since our finger may not be down of the frame it checks it needs to do a check first to see if our finger is even down first
         // So, if touchscreen is not pressed then do "return" but if pressed go to the next lines of code in the Update function
-        if(!Touchscreen.current.primaryTouch.press.isPressed)
+        if (!Touchscreen.current.primaryTouch.press.isPressed)
         {
             if (isDragging)
             {
@@ -66,10 +74,28 @@ public class BallHandler : MonoBehaviour
 
         currentBallRigidBody.position = worldPostion;
 
-        
-
-        
     }
+
+
+
+     private void SpawnNewBall()
+    {
+        // We are Instantiating the "ballPrefab" @ the pivot but we need its position and then Quaternion.identity just means no rotation
+        // Instantiate returns a GameObj (the ballPrefab) so we set it equal to a var
+        GameObject ballInstance = Instantiate(ballPrefab, pivot.position, Quaternion.identity);
+
+        // Next we need to get the Rigidbody and SpringJoint for the ball prefab so we set them to the ballInstances.GetComponent<ComponentNeeded>();
+        currentBallRigidBody = ballInstance.GetComponent<Rigidbody2D>();
+        currentBallSpringJoint = ballInstance.GetComponent<SpringJoint2D>();
+
+        // Now we need to set the SpringJoints 'connectedBody' by code instead of in the Inspector this time by...
+        currentBallSpringJoint.connectedBody = pivot;
+    }
+
+    
+    
+    
+
 
     private void LaunchBall()
     {
@@ -91,5 +117,7 @@ public class BallHandler : MonoBehaviour
         currentBallSpringJoint.enabled = false;
         // Clearing the SpringJoint so that it wont re-enable
         currentBallSpringJoint = null;
+
+        Invoke(nameof(SpawnNewBall), respawnDelay);
     }
 }
